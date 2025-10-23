@@ -1,14 +1,16 @@
 # 🚗 Car Dealership API
 
-Una API REST construida con NestJS para gestionar un concesionario de automóviles. Esta aplicación permite realizar operaciones CRUD (Crear, Leer, Actualizar, Eliminar) sobre automóviles.
+Una API REST completa construida con NestJS para gestionar un concesionario de automóviles. Esta aplicación permite realizar operaciones CRUD sobre automóviles y sus marcas, incluyendo un sistema de seed para poblar la base de datos con datos de prueba.
 
 ## 🚀 Características
 
 - **Framework**: NestJS con TypeScript
 - **Validación**: Class-validator y Class-transformer para validación de datos
 - **Arquitectura**: Modular siguiendo las mejores prácticas de NestJS
-- **UUID**: Identificadores únicos para cada automóvil
+- **UUID**: Identificadores únicos para automóviles y marcas
 - **Pipes de validación**: Validación automática de UUIDs y DTOs
+- **Sistema de Seed**: Poblado automático de datos de prueba
+- **Gestión de marcas**: CRUD completo para marcas de automóviles
 
 ## 📋 Endpoints de la API
 
@@ -22,13 +24,40 @@ Una API REST construida con NestJS para gestionar un concesionario de automóvil
 | PATCH  | `/cars/:id` | Actualiza un automóvil         | `{ brand?: string, model?: string }` |
 | DELETE | `/cars/:id` | Elimina un automóvil           | -                          |
 
-### Ejemplo de respuesta
+### Marcas (`/brand`)
 
+| Método | Endpoint     | Descripción                  | Body                    |
+|--------|--------------|------------------------------|-------------------------|
+| GET    | `/brand`     | Obtiene todas las marcas     | -                      |
+| GET    | `/brand/:id` | Obtiene una marca por ID     | -                      |
+| POST   | `/brand`     | Crea una nueva marca         | `{ name: string }`     |
+| PATCH  | `/brand/:id` | Actualiza una marca          | `{ name?: string }`    |
+| DELETE | `/brand/:id` | Elimina una marca            | -                      |
+
+### Sistema de Seed (`/seed`)
+
+| Método | Endpoint | Descripción                           | Body |
+|--------|----------|---------------------------------------|------|
+| GET    | `/seed`  | Puebla la BD con datos de prueba     | -    |
+
+### Ejemplos de respuesta
+
+#### Automóvil
 ```json
 {
   "id": "550e8400-e29b-41d4-a716-446655440000",
   "brand": "Toyota",
   "model": "Corolla"
+}
+```
+
+#### Marca
+```json
+{
+  "id": "550e8400-e29b-41d4-a716-446655440001",
+  "name": "Toyota",
+  "createdAt": 1698163200000,
+  "updatedAt": 1698163300000
 }
 ```
 
@@ -52,6 +81,12 @@ Una API REST construida con NestJS para gestionar un concesionario de automóvil
    
    # Modo producción
    npm run start:prod
+   ```
+
+4. **Puebla la base de datos (opcional)**
+   ```bash
+   # Visita http://localhost:3000/seed para cargar datos de prueba
+   curl http://localhost:3000/seed
    ```
 
 La aplicación estará disponible en `http://localhost:3000`
@@ -84,27 +119,32 @@ npm run format         # Formatea el código con Prettier
 src/
 ├── app.module.ts          # Módulo principal de la aplicación
 ├── main.ts               # Punto de entrada de la aplicación
-└── cars/                 # Módulo de automóviles
-    ├── cars.controller.ts    # Controlador con endpoints REST
-    ├── cars.service.ts       # Lógica de negocio
-    ├── cars.module.ts        # Módulo de automóviles
-    ├── dto/                  # Data Transfer Objects
-    │   ├── create-car.dto.ts
-    │   └── update-car.dto.ts
-    └── interfaces/           # Interfaces TypeScript
-        └── car.interface.ts
+├── cars/                 # Módulo de automóviles
+│   ├── cars.controller.ts    # Controlador REST para cars
+│   ├── cars.service.ts       # Lógica de negocio de cars
+│   ├── cars.module.ts        # Módulo de cars
+│   ├── dto/                  # Data Transfer Objects
+│   │   ├── create-car.dto.ts
+│   │   └── update-car.dto.ts
+│   └── interfaces/           # Interfaces TypeScript
+│       └── car.interface.ts
+├── brand/                # Módulo de marcas
+│   ├── brand.controller.ts   # Controlador REST para brands
+│   ├── brand.service.ts      # Lógica de negocio de brands
+│   ├── brand.module.ts       # Módulo de brands
+│   ├── dto/                  # Data Transfer Objects
+│   │   ├── create-brand.dto.ts
+│   │   └── update-brand.dto.ts
+│   └── entities/             # Entidades TypeScript
+│       └── brand.entity.ts
+└── seed/                 # Sistema de datos de prueba
+    ├── seed.controller.ts    # Controlador para seed
+    ├── seed.service.ts       # Servicio para poblar datos
+    ├── seed.module.ts        # Módulo de seed
+    └── data/                 # Datos de semilla
+        ├── brand.seed.ts     # Datos de marcas
+        └── cars.seed.ts      # Datos de automóviles
 ```
-
-## 🔧 Tecnologías utilizadas
-
-- **[NestJS](https://nestjs.com/)** - Framework de Node.js para aplicaciones server-side
-- **[TypeScript](https://www.typescriptlang.org/)** - Superset tipado de JavaScript
-- **[Class Validator](https://github.com/typestack/class-validator)** - Validación basada en decoradores
-- **[Class Transformer](https://github.com/typestack/class-transformer)** - Transformación de objetos
-- **[UUID](https://github.com/uuidjs/uuid)** - Generación de identificadores únicos
-- **[Jest](https://jestjs.io/)** - Framework de testing
-- **[ESLint](https://eslint.org/)** - Linter para JavaScript/TypeScript
-- **[Prettier](https://prettier.io/)** - Formateador de código
 
 ## 🎯 Funcionalidades
 
@@ -112,6 +152,7 @@ src/
 - Validación automática de DTOs usando decoradores de `class-validator`
 - Whitelist automática que filtra propiedades no permitidas
 - Validación de UUID en parámetros de ruta
+- Validación de longitud mínima en nombres de marcas
 
 ### Gestión de automóviles
 - Crear automóviles con marca y modelo
@@ -120,27 +161,67 @@ src/
 - Actualizar información de automóviles
 - Eliminar automóviles
 
-## 🧪 Testing
+### Gestión de marcas
+- Crear marcas con validación de nombre
+- Listar todas las marcas disponibles
+- Buscar marca por ID (UUID)
+- Actualizar información de marcas
+- Eliminar marcas
+- Timestamps automáticos (createdAt, updatedAt)
 
-El proyecto incluye configuración para diferentes tipos de testing:
+### Sistema de Seed
+- Poblado automático de la base de datos
+- Datos de prueba predefinidos para marcas y automóviles
+- Endpoint simple para inicializar datos (`GET /seed`)
 
-- **Pruebas unitarias**: Jest para testing de servicios y controladores
-- **Pruebas E2E**: Supertest para testing de endpoints
-- **Cobertura**: Generación de reportes de cobertura de código
+## 🚀 Ejemplos de uso
 
-## 👨‍💻 Desarrollo
+### Inicializar datos de prueba
+```bash
+curl -X GET http://localhost:3000/seed
+```
 
-Para contribuir al proyecto:
+### Trabajar con marcas
+```bash
+# Crear una nueva marca
+curl -X POST http://localhost:3000/brand \
+  -H "Content-Type: application/json" \
+  -d '{"name": "BMW"}'
 
-1. Fork el repositorio
-2. Crea una rama para tu feature (`git checkout -b feature/nueva-funcionalidad`)
-3. Realiza tus cambios
-4. Ejecuta las pruebas (`npm run test`)
-5. Verifica el linting (`npm run lint`)
-6. Commit tus cambios (`git commit -am 'Agrega nueva funcionalidad'`)
-7. Push a la rama (`git push origin feature/nueva-funcionalidad`)
-8. Crea un Pull Request
+# Obtener todas las marcas
+curl -X GET http://localhost:3000/brand
 
+# Obtener marca específica
+curl -X GET http://localhost:3000/brand/{brand-id}
+
+# Actualizar marca
+curl -X PATCH http://localhost:3000/brand/{brand-id} \
+  -H "Content-Type: application/json" \
+  -d '{"name": "BMW Motors"}'
+
+# Eliminar marca
+curl -X DELETE http://localhost:3000/brand/{brand-id}
+```
+
+### Trabajar con automóviles
+```bash
+# Crear un nuevo automóvil
+curl -X POST http://localhost:3000/cars \
+  -H "Content-Type: application/json" \
+  -d '{"brand": "BMW", "model": "X5"}'
+
+# Obtener todos los automóviles
+curl -X GET http://localhost:3000/cars
+
+# Obtener automóvil específico
+curl -X GET http://localhost:3000/cars/{car-id}
+
+# Actualizar automóvil
+curl -X PATCH http://localhost:3000/cars/{car-id} \
+  -H "Content-Type: application/json" \
+  -d '{"model": "X5 2024"}'
+
+# Eliminar automóvil
+curl -X DELETE http://localhost:3000/cars/{car-id}
+```
 ---
-
-Desarrollado con ❤️ usando NestJS
